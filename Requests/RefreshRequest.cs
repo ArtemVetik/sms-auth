@@ -47,9 +47,19 @@ namespace Agava.SmsAuthServer
 
             var resultRows = ((ExecuteDataQueryResponse)response).Result.ResultSets[0].Rows;
 
-            var dbToken = resultRows[0]["refresh_token"].GetString();
+            bool hasRefreshToken = false;
+            foreach (var row in resultRows)
+            {
+                var dbToken = row["refresh_token"].GetString();
+                
+                if (Encoding.UTF8.GetString(dbToken) == request.body)
+                {
+                    hasRefreshToken = true;
+                    break;
+                }
+            }
 
-            if (Encoding.UTF8.GetString(dbToken) != request.body)
+            if (hasRefreshToken == false)
                 return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Invalid token", false);
 
             var responseBody = new

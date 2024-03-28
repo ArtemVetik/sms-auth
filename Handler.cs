@@ -3,6 +3,7 @@ using Yandex.Cloud.Functions;
 using Ydb.Sdk.Auth;
 using Ydb.Sdk;
 using Ydb.Sdk.Services.Table;
+using SmsAuthServer;
 
 namespace Agava.SmsAuthServer
 {
@@ -28,6 +29,7 @@ namespace Agava.SmsAuthServer
                     "LOGIN" => new LoginRequest(tableClient, request),
                     "REGISTRATION" => new RegistrationRequest(tableClient, request),
                     "REFRESH" => new RefreshRequest(tableClient, request),
+                    "UNLINK" => new UnlinkRequest(tableClient, request),
                     "SAMPLE_AUTH" => new SampleAuthRequest(tableClient, request),
                     _ => new ErrorRequest(tableClient, request,
                         new Response((uint)StatusCode.NotFound, StatusCode.NotFound.ToString(), $"Method {request.method} not found", false)),
