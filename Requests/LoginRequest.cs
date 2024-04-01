@@ -41,8 +41,7 @@ namespace Agava.SmsAuthServer
                 refresh = refreshToken
             };
 
-            var jsonBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(responseBody));
-            return new Response((uint)Ydb.Sdk.StatusCode.Success, Ydb.Sdk.StatusCode.Success.ToString(), Convert.ToBase64String(jsonBytes), true);
+            return new Response((uint)Ydb.Sdk.StatusCode.Success, Ydb.Sdk.StatusCode.Success.ToString(), JsonConvert.SerializeObject(responseBody), false);
         }
 
         private async Task<Response> ValidateAndClearOTPCode(TableClient client, LoginData loginData)
