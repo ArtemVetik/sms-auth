@@ -46,6 +46,7 @@ namespace Agava.SmsAuthServer
                     "GET_CLOUD_SAVES" => new GetCloudSaveRequest(awsClient, tableClient, request),
                     "SET_CLOUD_SAVES" => new SetCloudSaveRequest(awsClient, tableClient, request),
                     "SAMPLE_AUTH" => new SampleAuthRequest(tableClient, request),
+                    "GET_OTP_CODES" => new GetOTPCodesRequest(tableClient, request),
                     _ => new ErrorRequest(tableClient, request,
                         new Response((uint)StatusCode.NotFound, StatusCode.NotFound.ToString(), $"Method {request.method} not found", false)),
                 };
