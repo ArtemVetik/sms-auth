@@ -4,6 +4,8 @@ using Ydb.Sdk.Auth;
 using Ydb.Sdk;
 using Ydb.Sdk.Services.Table;
 using SmsAuthServer;
+using Amazon.DynamoDBv2;
+using Amazon;
 
 namespace Agava.SmsAuthServer
 {
@@ -22,6 +24,17 @@ namespace Agava.SmsAuthServer
 
             var tableClient = new TableClient(driver, new TableClientConfig());
 
+            var awsConfig = new AmazonDynamoDBConfig()
+            {
+                RegionEndpoint = RegionEndpoint.EUCentral1,
+                EndpointProvider = new EndpointProvider(),
+            };
+
+            var awsAccessKeyId = Environment.GetEnvironmentVariable("AwsAccessKeyId");
+            var awsSecretAccessKey = Environment.GetEnvironmentVariable("AwsSecretAccessKey");
+
+            var awsClient = new AmazonDynamoDBClient(awsAccessKeyId, awsSecretAccessKey, awsConfig);
+
             try
             {
                 BaseRequest requestHandler = request.method switch
@@ -30,6 +43,8 @@ namespace Agava.SmsAuthServer
                     "REGISTRATION" => new RegistrationRequest(tableClient, request),
                     "REFRESH" => new RefreshRequest(tableClient, request),
                     "UNLINK" => new UnlinkRequest(tableClient, request),
+                    "GET_CLOUD_SAVES" => new GetCloudSaveRequest(awsClient, tableClient, request),
+                    "SET_CLOUD_SAVES" => new SetCloudSaveRequest(awsClient, tableClient, request),
                     "SAMPLE_AUTH" => new SampleAuthRequest(tableClient, request),
                     _ => new ErrorRequest(tableClient, request,
                         new Response((uint)StatusCode.NotFound, StatusCode.NotFound.ToString(), $"Method {request.method} not found", false)),
