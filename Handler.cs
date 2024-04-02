@@ -45,6 +45,7 @@ namespace Agava.SmsAuthServer
                     "UNLINK" => new UnlinkRequest(tableClient, request),
                     "GET_CLOUD_SAVES" => new GetCloudSaveRequest(awsClient, tableClient, request),
                     "SET_CLOUD_SAVES" => new SetCloudSaveRequest(awsClient, tableClient, request),
+                    "GET_DEVICES" => new GetDevicesRequest(tableClient, request),
                     "SAMPLE_AUTH" => new SampleAuthRequest(tableClient, request),
                     "GET_OTP_CODES" => new GetOTPCodesRequest(tableClient, request),
                     _ => new ErrorRequest(tableClient, request,
