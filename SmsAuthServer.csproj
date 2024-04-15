@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.302.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Yandex.Cloud.SDK" Version="1.4.0-pre1" />
     <PackageReference Include="Ydb.Sdk" Version="0.2.1" />
