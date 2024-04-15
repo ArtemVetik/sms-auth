@@ -68,8 +68,7 @@ namespace Agava.SmsAuthServer
                 refresh = request.body
             };
 
-            var jsonBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(responseBody));
-            return new Response((uint)response.Status.StatusCode, response.Status.StatusCode.ToString(), Convert.ToBase64String(jsonBytes), true);
+            return new Response((uint)response.Status.StatusCode, response.Status.StatusCode.ToString(), JsonConvert.SerializeObject(responseBody), false);
         }
     }
 }

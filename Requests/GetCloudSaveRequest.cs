@@ -1,18 +1,13 @@
-﻿using System.Net;
-using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
+﻿using System.Text;
 using Ydb.Sdk.Services.Table;
+using Ydb.Sdk.Value;
 
 namespace Agava.SmsAuthServer
 {
     internal class GetCloudSaveRequest : BaseRequest
     {
-        private readonly AmazonDynamoDBClient _awsClient;
-
-        public GetCloudSaveRequest(AmazonDynamoDBClient awsClient, TableClient tableClient, Request request) : base(tableClient, request)
-        {
-            _awsClient = awsClient;
-        }
+        public GetCloudSaveRequest(TableClient tableClient, Request request) : base(tableClient, request)
+        { }
 
         protected override async Task<Response> Handle(TableClient client, Request request)
         {
@@ -26,22 +21,37 @@ namespace Agava.SmsAuthServer
                 return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), exception.Message, false);
             }
 
-            var awsRequest = new GetItemRequest("cloud_saves", new Dictionary<string, AttributeValue>()
+            var response = await client.SessionExec(async session =>
             {
-                { "phone", new AttributeValue {S = phone } }
+                var query = $@"
+                    DECLARE $phone AS String;
+
+                    SELECT data
+                    FROM `cloud_saves`
+                    WHERE phone = $phone;
+                ";
+
+                return await session.ExecuteDataQuery(
+                    query: query,
+                    txControl: TxControl.BeginSerializableRW().Commit(),
+                    parameters: new Dictionary<string, YdbValue>
+                    {
+                        { "$phone", YdbValue.MakeString(Encoding.UTF8.GetBytes(phone)) },
+                    }
+                );
             });
 
-            var awsResponse = await _awsClient.GetItemAsync(awsRequest);
+            if (response.Status.IsSuccess == false)
+                return new Response((uint)response.Status.StatusCode, response.Status.StatusCode.ToString(), string.Empty, false);
 
-            if (awsResponse.HttpStatusCode != HttpStatusCode.OK)
-                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Failed to get item!", false);
+            var resultRows = ((ExecuteDataQueryResponse)response).Result.ResultSets[0].Rows;
 
-            if (awsResponse.Item.Count == 0)
-                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Record not found!", false);
+            if (resultRows.Count == 0)
+                return new Response((uint)response.Status.StatusCode, response.Status.StatusCode.ToString(), string.Empty, false);
 
-            var data = awsResponse.Item["data"].B.ToArray();
+            var data = resultRows[0]["data"].GetJson();
 
-            return new Response((uint)Ydb.Sdk.StatusCode.Success, Ydb.Sdk.StatusCode.Success.ToString(), Convert.ToBase64String(data), true);
+            return new Response((uint)response.Status.StatusCode, response.Status.StatusCode.ToString(), data, false);
         }
     }
 }
