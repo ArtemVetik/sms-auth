@@ -77,12 +77,12 @@ namespace Agava.SmsAuthServer
             var resultRows = ((ExecuteDataQueryResponse)response).Result.ResultSets[0].Rows;
 
             if (resultRows.Count == 0)
-                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Invalid credentials1", false);
+                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Invalid credentials", false);
 
             var expireTime = resultRows[0]["expire_time"].GetTimestamp();
 
             if (DateTime.UtcNow > expireTime)
-                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "Invalid credentials2", false);
+                return new Response((uint)StatusCode.ValidationError, StatusCode.ValidationError.ToString(), "OTP code not valid", false);
 
             return new Response((uint)Ydb.Sdk.StatusCode.Success, Ydb.Sdk.StatusCode.Success.ToString(), string.Empty, false);
         }
@@ -115,7 +115,7 @@ namespace Agava.SmsAuthServer
             var resultRows = ((ExecuteDataQueryResponse)response).Result.ResultSets[0].Rows;
 
             foreach (var row in resultRows)
-                if (row["device_id"].GetString() == Encoding.UTF8.GetBytes(loginData.device_id))
+                if (Encoding.UTF8.GetString(row["device_id"].GetString()) == loginData.device_id)
                     return true;
 
             return resultRows.Count < 5;
